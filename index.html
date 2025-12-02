@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>VideoDive – Smart Video Finder & Player</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="VideoDive is a smart video finder & player that scans webpages, detects videos, and lets you play or download them with a modern mobile-friendly UI." />
+<meta name="keywords" content="video finder, videoDive, video scraper, video downloader, smart video player, scan videos" />
+
+<style>
+  :root {
+    --bg: #050816;
+    --card: #111827;
+    --accent: #3b82f6;
+    --accent-2: #2563eb;
+    --accent-download: #f59e0b;
+    --border: #1f2937;
+    --text-main: #f9fafb;
+    --text-dim: #9ca3af;
+    --shadow: 0 10px 30px rgba(0,0,0,0.4);
+    --radius-lg: 14px;
+    --radius-md: 10px;
+    --radius-sm: 8px;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: radial-gradient(circle at top, #0f172a, #020617);
+    color: var(--text-main);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    padding: 16px;
+  }
+
+  .app {
+    max-width: 900px;
+    margin: 0 auto 40px;
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 18px;
+  }
+
+  .header-title {
+    font-size: 26px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #60a5fa, #a855f7);
+    -webkit-background-clip: text;
+    color: transparent;
+  }
+
+  .header-sub {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+
+  .input-card {
+    background: rgba(15,23,42,0.95);
+    padding: 14px;
+    border-radius: var(--radius-lg);
+    border: 1px solid rgba(148,163,184,0.4);
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+  }
+
+  .input-card label {
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+
+  textarea {
+    width: 100%;
+    margin-top: 6px;
+    border-radius: var(--radius-md);
+    border: 1px solid #334155;
+    background: #020617;
+    color: var(--text-main);
+    padding: 10px;
+    font-size: 14px;
+    resize: vertical;
+    min-height: 110px;
+  }
+
+  textarea::placeholder {
+    color: #6b7280;
+  }
+
+  textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px rgba(59,130,246,0.8);
+  }
+
+  .primary-btn {
+    margin-top: 10px;
+    width: 100%;
+    padding: 11px;
+    border-radius: 999px;
+    border: none;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: white;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    transition: transform 0.12s ease-out, box-shadow 0.12s ease-out;
+    box-shadow: 0 8px 25px rgba(37, 99, 235, 0.45);
+  }
+
+  .primary-btn:active {
+    transform: scale(0.97);
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.45);
+  }
+
+  .status {
+    margin-top: 8px;
+    font-size: 13px;
+    color: var(--text-dim);
+    min-height: 16px;
+  }
+
+  .status strong {
+    color: #e5e7eb;
+  }
+
+  .results {
+    margin-top: 10px;
+  }
+
+  .video-card,
+  .social-card {
+    background: var(--card);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    margin-top: 16px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    animation: fadeIn 0.25s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .thumbnail-container,
+  .social-media-preview {
+    width: 100%;
+    height: 200px;
+    background: #000;
+    position: relative;
+    cursor: pointer;
+  }
+
+  .thumbnail-container video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.85;
+  }
+
+  .thumb-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .play-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.55);
+    padding: 16px 18px;
+    border-radius: 50%;
+    font-size: 22px;
+  }
+
+  .details {
+    padding: 12px 13px 14px;
+  }
+
+  .video-title {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .platform-pill {
+    display: inline-block;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    border: 1px solid rgba(148,163,184,0.6);
+    color: #e5e7eb;
+    margin-bottom: 6px;
+  }
+
+  .meta {
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.4;
+    word-break: break-all;
+  }
+
+  .meta b {
+    color: #e5e7eb;
+    font-weight: 600;
+  }
+
+  .download-btn {
+    margin-top: 12px;
+    width: 100%;
+    padding: 10px;
+    border-radius: 999px;
+    border: none;
+    background: linear-gradient(135deg, var(--accent-download), #d97706);
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .social-open-btn {
+    margin-top: 12px;
+    width: 100%;
+    padding: 10px;
+    border-radius: 999px;
+    border: none;
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  /* Double-tap seek indicators */
+  .seek-indicator {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 7px 12px;
+    background: rgba(0,0,0,0.65);
+    border-radius: 25px;
+    opacity: 0;
+    transition: opacity 0.15s ease-out;
+    font-size: 12px;
+  }
+  .seek-left { left: 18%; }
+  .seek-right { right: 18%; }
+  .seek-indicator.show { opacity: 1; }
+
+  iframe {
+    border: none;
+    width: 100%;
+    height: 220px;
+  }
+
+  @media (min-width: 700px) {
+    .thumbnail-container,
+    .social-media-preview {
+      height: 230px;
+    }
+    iframe {
+      height: 260px;
+    }
+  }
+</style>
+</head>
+
+<body>
+<div class="app">
+  <div class="header">
+    <div class="header-title">VideoDive</div>
+    <div class="header-sub">
+      Smart Video Finder & Player – scan normal sites & safely handle social media links.
+    </div>
+  </div>
+
+  <div class="input-card">
+    <label for="urls">Paste website or social media URLs (one per line):</label>
+    <textarea id="urls" placeholder="https://example.com/page
+https://youtube.com/watch?v=...
+https://www.instagram.com/p/...
+https://www.tiktok.com/@user/video/..."></textarea>
+    <button class="primary-btn" onclick="scan()">Scan for Videos</button>
+    <div id="status" class="status"></div>
+  </div>
+
+  <div id="results" class="results"></div>
+</div>
+
+<script>
+const PROXY = "https://api.allorigins.win/raw?url=";
+
+/* ---------- Helpers ---------- */
+
+function normalizeUrl(url) {
+  url = url.trim();
+  if (!/^https?:\/\//i.test(url)) {
+    return "https://" + url;
+  }
+  return url;
+}
+
+function detectPlatform(urlStr) {
+  try {
+    const u = new URL(urlStr);
+    const host = u.hostname.replace(/^www\./i, "").toLowerCase();
+    if (host.includes("youtube.com") || host === "youtu.be") return "youtube";
+    if (host.includes("instagram.com")) return "instagram";
+    if (host.includes("tiktok.com")) return "tiktok";
+    if (host.includes("facebook.com")) return "facebook";
+    if (host.includes("twitter.com") || host.includes("x.com")) return "twitter";
+    if (host.includes("vimeo.com")) return "vimeo";
+    if (host.includes("reddit.com")) return "reddit";
+    return "generic";
+  } catch {
+    return "generic";
+  }
+}
+
+async function getHTML(url) {
+  try {
+    const res = await fetch(PROXY + encodeURIComponent(url));
+    return await res.text();
+  } catch {
+    return null;
+  }
+}
+
+// Best-effort file size; falls back to "Unknown"
+async function getFileSize(url) {
+  try {
+    const res = await fetch(PROXY + encodeURIComponent(url), { method: "HEAD" });
+    const size = res.headers.get("content-length");
+    if (!size) return "Unknown";
+    const mb = (Number(size) / 1024 / 1024).toFixed(2);
+    if (!isFinite(mb)) return "Unknown";
+    return mb + " MB";
+  } catch {
+    return "Unknown";
+  }
+}
+
+/* ---------- YouTube helpers ---------- */
+
+function getYouTubeId(urlStr) {
+  try {
+    const u = new URL(urlStr);
+    if (u.hostname.includes("youtu.be")) {
+      return u.pathname.replace("/", "");
+    }
+    if (u.searchParams.get("v")) {
+      return u.searchParams.get("v");
+    }
+    // /shorts/ID or /embed/ID
+    const parts = u.pathname.split("/").filter(Boolean);
+    if (parts.length >= 2 && (parts[0] === "shorts" || parts[0] === "embed")) {
+      return parts[1];
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function getYouTubeThumbnail(id) {
+  return "https://img.youtube.com/vi/" + id + "/hqdefault.jpg";
+}
+
+/* Try to get YouTube meta via oEmbed; falls back gracefully */
+async function fetchYouTubeMeta(urlStr) {
+  const id = getYouTubeId(urlStr);
+  const fallbackTitle = "YouTube Video";
+  if (!id) {
+    return {
+      id: null,
+      title: fallbackTitle,
+      author: "YouTube",
+      thumb: null
+    };
+  }
+
+  const oembedUrl =
+    "https://www.youtube.com/oembed?url=" +
+    encodeURIComponent(urlStr) +
+    "&format=json";
+
+  try {
+    const res = await fetch(PROXY + encodeURIComponent(oembedUrl));
+    const text = await res.text();
+    const data = JSON.parse(text);
+    return {
+      id,
+      title: data.title || fallbackTitle,
+      author: data.author_name || "YouTube",
+      thumb: data.thumbnail_url || getYouTubeThumbnail(id)
+    };
+  } catch {
+    return {
+      id,
+      title: fallbackTitle,
+      author: "YouTube",
+      thumb: getYouTubeThumbnail(id)
+    };
+  }
+}
+
+/* ---------- Main Scan ---------- */
+
+async function scan() {
+  const raw = document.getElementById("urls").value.trim();
+  const results = document.getElementById("results");
+  const status = document.getElementById("status");
+
+  results.innerHTML = "";
+  status.innerHTML = "";
+
+  if (!raw) {
+    status.innerHTML = "Please paste at least one URL.";
+    return;
+  }
+
+  const urls = raw.split("\n").map(x => x.trim()).filter(Boolean);
+  if (urls.length === 0) {
+    status.innerHTML = "No valid URLs found.";
+    return;
+  }
+
+  status.innerHTML = "⏳ Scanning…";
+
+  let totalVideos = 0;
+
+  for (let i = 0; i < urls.length; i++) {
+    const originalUrl = urls[i];
+    const url = normalizeUrl(originalUrl);
+    const platform = detectPlatform(url);
+
+    if (platform === "youtube") {
+      await createYouTubeCard(url, results);
+      totalVideos += 1;
+      continue;
+    }
+
+    if (platform !== "generic") {
+      // Social media: show open-card (safe, legal)
+      createSocialCard(url, platform, results);
+      continue;
+    }
+
+    // Normal/generic website: scrape <video>/<source>
+    const countFromPage = await scrapeGenericSite(url, results);
+    totalVideos += countFromPage;
+  }
+
+  if (totalVideos > 0) {
+    status.innerHTML = `✅ Found ${totalVideos} direct video file(s) from generic sites.<br><strong>Note:</strong> Social media links are shown as safe openable cards (no direct download).`;
+  } else {
+    status.innerHTML = `Scan finished. No direct video files found on generic sites. Social links are still listed below if any.`;
+  }
+}
+
+/* ---------- Generic site scraper (custom player + download) ---------- */
+
+async function scrapeGenericSite(pageUrl, resultsEl) {
+  const html = await getHTML(pageUrl);
+  if (!html) {
+    const errCard = document.createElement("div");
+    errCard.className = "video-card";
+    errCard.innerHTML = `
+      <div class="details">
+        <span class="platform-pill">Website</span>
+        <div class="video-title">Could not load page</div>
+        <div class="meta">
+          <b>URL:</b> ${pageUrl}<br>
+          <b>Error:</b> Unable to fetch HTML (blocked or offline).
+        </div>
+      </div>
+    `;
+    resultsEl.appendChild(errCard);
+    return 0;
+  }
+
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  const tags = [
+    ...doc.querySelectorAll("video"),
+    ...doc.querySelectorAll("source")
+  ];
+
+  const uniqueSrcs = [];
+  const seen = new Set();
+
+  for (const tag of tags) {
+    const src = tag.src || tag.getAttribute("src");
+    if (!src) continue;
+    if (!seen.has(src)) {
+      seen.add(src);
+      uniqueSrcs.push(src);
+    }
+  }
+
+  if (uniqueSrcs.length === 0) {
+    const noCard = document.createElement("div");
+    noCard.className = "video-card";
+    noCard.innerHTML = `
+      <div class="details">
+        <span class="platform-pill">Website</span>
+        <div class="video-title">No &lt;video&gt; sources found</div>
+        <div class="meta">
+          <b>Page:</b> ${pageUrl}
+        </div>
+      </div>
+    `;
+    resultsEl.appendChild(noCard);
+    return 0;
+  }
+
+  let videoIndex = 1;
+  for (const src of uniqueSrcs) {
+    const absoluteSrc = resolveUrl(pageUrl, src);
+    const sizeText = await getFileSize(absoluteSrc);
+
+    const card = document.createElement("div");
+    card.className = "video-card";
+
+    card.innerHTML = `
+      <div class="thumbnail-container">
+        <video muted preload="metadata">
+          <source src="${absoluteSrc}">
+        </video>
+        <div class="play-overlay">▶</div>
+      </div>
+      <div class="details">
+        <span class="platform-pill">Website Video</span>
+        <div class="video-title">Video ${videoIndex++}</div>
+        <div class="meta">
+          <b>From page:</b> ${pageUrl}<br>
+          <b>Size:</b> ${sizeText}<br>
+          <b>File URL:</b> ${absoluteSrc}
+        </div>
+        <button class="download-btn" onclick="window.open('${absoluteSrc}', '_blank')">
+          ⬇ Download / Open Video
+        </button>
+      </div>
+    `;
+
+    const thumbContainer = card.querySelector(".thumbnail-container");
+    thumbContainer.addEventListener("click", () => playInlineCustom(card, absoluteSrc));
+
+    resultsEl.appendChild(card);
+  }
+
+  return uniqueSrcs.length;
+}
+
+/* Resolve relative video src against page URL */
+function resolveUrl(base, relative) {
+  try {
+    return new URL(relative, base).href;
+  } catch {
+    return relative;
+  }
+}
+
+/* ---------- Custom inline video player with double-tap seek ---------- */
+
+function playInlineCustom(card, src) {
+  const thumb = card.querySelector(".thumbnail-container");
+  if (!thumb) return;
+
+  thumb.innerHTML = `
+    <div style="position:relative;">
+      <video class="inline-video" controls autoplay playsinline src="${src}" style="width:100%; height:100%; object-fit:contain; background:#000; border-radius:0;"></video>
+      <div class="seek-indicator seek-left">-10s</div>
+      <div class="seek-indicator seek-right">+10s</div>
+    </div>
+  `;
+
+  const video = thumb.querySelector("video.inline-video");
+  const left = thumb.querySelector(".seek-left");
+  const right = thumb.querySelector(".seek-right");
+
+  let lastTap = 0;
+
+  video.addEventListener("click", e => {
+    const now = Date.now();
+    const rect = video.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+
+    if (now - lastTap < 300) {
+      if (x < rect.width / 2) {
+        video.currentTime = Math.max(0, video.currentTime - 10);
+        left.classList.add("show");
+        setTimeout(() => left.classList.remove("show"), 180);
+      } else {
+        video.currentTime = Math.min(
+          isFinite(video.duration) ? video.duration : video.currentTime + 10,
+          video.currentTime + 10
+        );
+        right.classList.add("show");
+        setTimeout(() => right.classList.remove("show"), 180);
+      }
+    }
+
+    lastTap = now;
+  });
+}
+
+/* ---------- YouTube card (inline embed) ---------- */
+
+async function createYouTubeCard(url, resultsEl) {
+  const meta = await fetchYouTubeMeta(url);
+  const videoId = meta.id;
+  const embedUrl = videoId
+    ? "https://www.youtube.com/embed/" + videoId + "?autoplay=1"
+    : null;
+
+  const card = document.createElement("div");
+  card.className = "social-card";
+
+  const thumbUrl = meta.thumb || "";
+  const titleText = meta.title || "YouTube Video";
+  const authorText = meta.author || "YouTube";
+
+  card.innerHTML = `
+    <div class="social-media-preview">
+      ${
+        thumbUrl
+          ? `<img src="${thumbUrl}" alt="YouTube thumbnail" class="thumb-image" />`
+          : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:14px;color:#9ca3af;">YouTube</div>`
+      }
+      <div class="play-overlay">▶</div>
+    </div>
+    <div class="details">
+      <span class="platform-pill">YouTube</span>
+      <div class="video-title">${escapeHtml(titleText)}</div>
+      <div class="meta">
+        <b>Channel:</b> ${escapeHtml(authorText)}<br>
+        <b>URL:</b> ${url}
+      </div>
+      <button class="social-open-btn" onclick="window.open('${url}', '_blank')">
+        ▶ Open on YouTube
+      </button>
+    </div>
+  `;
+
+  const preview = card.querySelector(".social-media-preview");
+  if (embedUrl) {
+    preview.addEventListener("click", () => {
+      preview.innerHTML = `<iframe src="${embedUrl}" allowfullscreen></iframe>`;
+    });
+  }
+
+  resultsEl.appendChild(card);
+}
+
+/* ---------- Generic social cards (open in app/site) ---------- */
+
+function createSocialCard(url, platform, resultsEl) {
+  const card = document.createElement("div");
+  card.className = "social-card";
+
+  const platformLabel = platformLabelMap(platform);
+
+  card.innerHTML = `
+    <div class="social-media-preview">
+      <div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:#e5e7eb;font-size:15px;">
+        <div style="font-weight:700;text-transform:capitalize;">${platformLabel}</div>
+        <div style="font-size:12px;color:#9ca3af;">Social media link</div>
+      </div>
+    </div>
+    <div class="details">
+      <span class="platform-pill">${platformLabel}</span>
+      <div class="video-title">${platformLabel} Content</div>
+      <div class="meta">
+        <b>URL:</b> ${url}<br>
+        Direct download of social media videos in-browser is restricted. Use the official app or site.
+      </div>
+      <button class="social-open-btn" onclick="window.open('${url}', '_blank')">
+        ▶ Open on ${platformLabel}
+      </button>
+    </div>
+  `;
+
+  resultsEl.appendChild(card);
+}
+
+function platformLabelMap(platform) {
+  switch (platform) {
+    case "instagram": return "Instagram";
+    case "tiktok": return "TikTok";
+    case "facebook": return "Facebook";
+    case "twitter": return "Twitter / X";
+    case "vimeo": return "Vimeo";
+    case "reddit": return "Reddit";
+    default: return "Social";
+  }
+}
+
+/* ---------- Utility ---------- */
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+</script>
+</body>
+  </html>
